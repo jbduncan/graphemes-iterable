@@ -1,0 +1,5 @@
+rootProject.name = "graphemes-experiment"
+
+if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11)) {
+    throw GradleException("This project requires Java 11")
+}
