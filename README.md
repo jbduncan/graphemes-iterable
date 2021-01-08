@@ -1,7 +1,7 @@
 # Graphemes
 
 This project implements a simple `Iterable<String>` wrapper around ICU4J's
-`BreakIterator` for splitting strings into human-readable characters.
+`BreakIterator` for splitting strings into user-perceived characters.
 
 However, this project is really just an excuse for me to get to grips with
 [jqwik](https://jqwik.net/) for Property-based Testing and

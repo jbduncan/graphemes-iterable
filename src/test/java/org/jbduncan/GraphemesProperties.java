@@ -2,22 +2,13 @@ package org.jbduncan;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
@@ -92,60 +83,32 @@ class GraphemesProperties {
   void iteratingOverSameGraphemesMultipleTimesProducesSameResult(
       @ForAll String string, @ForAll @IntRange(min = 2, max = 25) int times) {
     // given
-    var results = new HashSet<ImmutableList<String>>();
+    var uniqueResults = new HashSet<ImmutableList<String>>();
     var graphemes = Graphemes.of(string);
 
     // when
     for (int i = 0; i < times; i++) {
-      results.add(ImmutableList.copyOf(graphemes.iterator()));
+      uniqueResults.add(ImmutableList.copyOf(graphemes.iterator()));
     }
 
     // then
-    assertEquals(1, results.size());
+    assertThat(uniqueResults).hasSize(1);
   }
 
   @Property
   void iteratingOverSameGraphemesReversedMultipleTimesProducesSameResult(
       @ForAll String string, @ForAll @IntRange(min = 2, max = 25) int times) {
     // given
-    var results = new HashSet<ImmutableList<String>>();
+    var uniqueResults = new HashSet<ImmutableList<String>>();
     var graphemesReversed = Graphemes.of(string).reversed();
 
     // when
     for (int i = 0; i < times; i++) {
-      results.add(ImmutableList.copyOf(graphemesReversed.iterator()));
+      uniqueResults.add(ImmutableList.copyOf(graphemesReversed.iterator()));
     }
 
     // then
-    assertEquals(1, results.size());
-  }
-
-  @Property
-  void exhaustingGraphemesIteratorMakesItEmpty(@ForAll String string) {
-    // given
-    var graphemes = Graphemes.of(string);
-
-    // when
-    var iterator = graphemes.iterator();
-    exhaust(iterator);
-
-    // then
-    assertFalse(iterator.hasNext());
-    assertThrows(NoSuchElementException.class, iterator::next);
-  }
-
-  @Property
-  void exhaustingGraphemesReversedIteratorMakesItEmpty(@ForAll String string) {
-    // given
-    var graphemes = Graphemes.of(string).reversed();
-
-    // when
-    var iterator = graphemes.iterator();
-    exhaust(iterator);
-
-    // then
-    assertFalse(iterator.hasNext());
-    assertThrows(NoSuchElementException.class, iterator::next);
+    assertThat(uniqueResults).hasSize(1);
   }
 
   @Property
@@ -153,17 +116,18 @@ class GraphemesProperties {
       @ForAll String string, @ForAll @IntRange(min = 2, max = 25) int times) {
     // given
     var uniqueResults = new HashSet<ImmutableList<String>>();
+    var graphemes = Graphemes.of(string);
 
     // when
     for (int i = 0; i < times; i++) {
-      var graphemesSpliterator = Graphemes.of(string).spliterator();
+      var graphemesSpliterator = graphemes.spliterator();
       uniqueResults.add(
           StreamSupport.stream(graphemesSpliterator, /* parallel= */ false)
               .collect(toImmutableList()));
     }
 
     // then
-    assertEquals(1, uniqueResults.size());
+    assertThat(uniqueResults).hasSize(1);
   }
 
   @Property
@@ -171,21 +135,22 @@ class GraphemesProperties {
       @ForAll String string, @ForAll @IntRange(min = 2, max = 25) int times) {
     // given
     var uniqueResults = new HashSet<ImmutableList<String>>();
+    var graphemesReversed = Graphemes.of(string).reversed();
 
     // when
     for (int i = 0; i < times; i++) {
-      var graphemesReversedSpliterator = Graphemes.of(string).reversed().spliterator();
+      var graphemesReversedSpliterator = graphemesReversed.spliterator();
       uniqueResults.add(
           StreamSupport.stream(graphemesReversedSpliterator, /* parallel= */ false)
               .collect(toImmutableList()));
     }
 
     // then
-    assertEquals(1, uniqueResults.size());
+    assertThat(uniqueResults).hasSize(1);
   }
 
   @Property
-  void exhaustingGraphemeSpliteratorMakesItEmpty(@ForAll String string) {
+  void exhaustingGraphemesSpliteratorMakesItEmpty(@ForAll String string) {
     // given
     var graphemes = Graphemes.of(string);
 
@@ -194,10 +159,7 @@ class GraphemesProperties {
     exhaust(spliterator);
 
     // then
-    assertFalse(spliterator.tryAdvance(unused -> {}));
-    var counter = new AtomicInteger(0);
-    spliterator.forEachRemaining(unused -> counter.incrementAndGet());
-    assertEquals(0, counter.intValue());
+    assertThat(spliterator.tryAdvance(unused -> {})).isFalse();
   }
 
   @Property
@@ -210,10 +172,7 @@ class GraphemesProperties {
     exhaust(spliterator);
 
     // then
-    assertFalse(spliterator.tryAdvance(unused -> {}));
-    var counter = new AtomicInteger(0);
-    spliterator.forEachRemaining(unused -> counter.incrementAndGet());
-    assertEquals(0, counter.intValue());
+    assertThat(spliterator.tryAdvance(unused -> {})).isFalse();
   }
 
   @Property
@@ -223,7 +182,7 @@ class GraphemesProperties {
     var graphemes = Graphemes.of(string);
 
     // then
-    assertFalse(Iterables.contains(graphemes, null));
+    assertThat(graphemes).doesNotContainNull();
   }
 
   @Property
@@ -233,7 +192,7 @@ class GraphemesProperties {
     var graphemes = Graphemes.of(string).reversed();
 
     // then
-    assertFalse(Iterables.contains(graphemes, null));
+    assertThat(graphemes).doesNotContainNull();
   }
 
   @Property
@@ -242,7 +201,7 @@ class GraphemesProperties {
     var graphemes = Graphemes.of(codePoint);
 
     // then
-    assertIterableEquals(List.of(codePoint), graphemes);
+    assertThat(graphemes).containsExactly(codePoint);
   }
 
   @Property
@@ -251,7 +210,7 @@ class GraphemesProperties {
     var graphemes = Graphemes.of(codePoint).reversed();
 
     // then
-    assertIterableEquals(List.of(codePoint), graphemes);
+    assertThat(graphemes).containsExactly(codePoint);
   }
 
   @Property
@@ -263,8 +222,7 @@ class GraphemesProperties {
     var doublyReversedGraphemes = expectedGraphemes.reversed().reversed();
 
     // then
-    assertSame(expectedGraphemes, doublyReversedGraphemes);
-    assertIterableEquals(expectedGraphemes, doublyReversedGraphemes);
+    assertThat(doublyReversedGraphemes).isSameAs(expectedGraphemes).isEqualTo(expectedGraphemes);
   }
 
   @Property
@@ -278,7 +236,7 @@ class GraphemesProperties {
     var actualGraphemes = Graphemes.of(string);
 
     // then
-    assertIterableEquals(expectedCharacters, actualGraphemes);
+    assertThat(actualGraphemes).containsExactlyElementsOf(expectedCharacters);
   }
 
   @Provide
@@ -295,10 +253,8 @@ class GraphemesProperties {
     var actualGraphemes = Graphemes.of(string);
 
     // then
-    assertTrue(
-        actualGraphemes
-            .spliterator()
-            .hasCharacteristics(Spliterator.IMMUTABLE | Spliterator.NONNULL));
+    assertThat(actualGraphemes.spliterator())
+        .hasOnlyCharacteristics(Spliterator.IMMUTABLE, Spliterator.NONNULL);
   }
 
   @Property
@@ -307,9 +263,7 @@ class GraphemesProperties {
     var actualGraphemes = Graphemes.of(string).reversed();
 
     // then
-    assertTrue(
-        actualGraphemes
-            .spliterator()
-            .hasCharacteristics(Spliterator.IMMUTABLE | Spliterator.NONNULL));
+    assertThat(actualGraphemes.spliterator())
+        .hasOnlyCharacteristics(Spliterator.IMMUTABLE, Spliterator.NONNULL);
   }
 }

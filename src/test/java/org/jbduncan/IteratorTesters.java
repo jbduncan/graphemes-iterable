@@ -9,7 +9,7 @@ final class IteratorTesters {
   static IteratorTester<String> iteratorTester(
       Graphemes actualGraphemes, List<String> expectedGraphemes) {
     return new IteratorTester<>(
-        expectedGraphemes.size(),
+        expectedGraphemes.size() + 1,
         IteratorFeature.UNMODIFIABLE,
         expectedGraphemes,
         IteratorTester.KnownOrder.KNOWN_ORDER) {
